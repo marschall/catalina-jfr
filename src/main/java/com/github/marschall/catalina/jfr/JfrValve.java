@@ -1,6 +1,12 @@
 package com.github.marschall.catalina.jfr;
 
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.ServletException;
 
@@ -13,6 +19,7 @@ import jdk.jfr.Category;
 import jdk.jfr.Description;
 import jdk.jfr.Event;
 import jdk.jfr.Label;
+import jdk.jfr.Relational;
 import jdk.jfr.StackTrace;
 
 /**
@@ -20,30 +27,100 @@ import jdk.jfr.StackTrace;
 */
 public class JfrValve extends ValveBase {
 
+  static final String EXCHANGE_ID_ATTRIBUTE = "com.github.marschall.jfr.catalina.exchangeId";
+
+  private static final AtomicLong EXCHANGE_ID_GENERATOR = new AtomicLong();
+
   // http://hirt.se/blog/?p=870
   // https://www.oracle.com/technetwork/oem/soa-mgmt/con10912-javaflightrecorder-2342054.pdf
 
+  public JfrValve() {
+    super(true);
+  }
+
   @Override
   public void invoke(Request request, Response response) throws IOException, ServletException {
-    boolean isAsync = request.isAsyncStarted();
-    if (isAsync) {
-      this.getNext().invoke(request, response);
+    Long exchangeId = (Long) request.getAttribute(EXCHANGE_ID_ATTRIBUTE);
+    if (exchangeId != null) {
+      // dispatched request
+      this.filterRelatedRequest(exchangeId, request, response);
     } else {
-      HttpEvent event = new HttpEvent();
-      event.setMethod(request.getMethod());
-      event.setUri(request.getRequestURI());
-      event.setQuery(request.getQueryString());
-      event.begin();
-      try {
-        this.getNext().invoke(request, response);
-      } finally {
-        if (!isAsync) {
-          event.end();
-          event.commit();
-        }
-      }
+      this.filterNewRequest(request, response);
+    }
+  }
+
+  private void filterNewRequest(Request request, Response response)
+          throws IOException, ServletException {
+
+    long newExchangeId = generateExchangeId();
+    request.setAttribute(EXCHANGE_ID_ATTRIBUTE, newExchangeId);
+
+    HttpEvent event = new HttpEvent();
+    event.setExchangeId(newExchangeId);
+    copyHttpRequestAttributes(request, event);
+
+    event.begin();
+    try {
+      this.getNext().invoke(request, response);
+      copyResponeAttributes(response, event);
+    } finally {
+      event.end();
+      event.commit();
+    }
+  }
+
+  private static void copyHttpRequestAttributes(Request request, HttpEvent event) {
+    event.setMethod(request.getMethod());
+    event.setUri(request.getRequestURI());
+    event.setQuery(request.getQueryString());
+  }
+
+  private static void copyResponeAttributes(Response respone, HttpEvent event) {
+    event.setStatus(respone.getStatus());
+  }
+
+  private void filterRelatedRequest(long exchangeId, Request request, Response response)
+      throws IOException, ServletException {
+
+    RelatedHttpEvent event = new RelatedHttpEvent();
+    event.setExchangeId(exchangeId);
+    try {
+      this.getNext().invoke(request, response);
+    } finally {
+      event.end();
+      event.commit();
+    }
+  }
+
+  private static long generateExchangeId() {
+    return EXCHANGE_ID_GENERATOR.incrementAndGet();
+  }
+
+  @Label("Exchange Id")
+  @Description("Id to track requests that have been dispatched multiple times")
+  @Relational
+  @Target(FIELD)
+  @Retention(RUNTIME)
+  @interface ExchangeId {
+
+  }
+
+  @Label("related HTTP exchange")
+  @Description("An HTTP exchange related to a different event")
+  @Category("HTTP")
+  @StackTrace(false)
+  static class RelatedHttpEvent extends Event {
+
+    @ExchangeId
+    private long exchangeId;
+
+    long getExchangeId() {
+      return this.exchangeId;
     }
 
+    void setExchangeId(long exchangeId) {
+      this.exchangeId = exchangeId;
+    }
 
   }
 
@@ -64,6 +141,13 @@ public class JfrValve extends ValveBase {
     @Label("Query")
     @Description("The query string")
     private String query;
+
+    @Label("Status")
+    @Description("The HTTP response status code")
+    private int status;
+
+    @ExchangeId
+    private long exchangeId;
 
     String getMethod() {
       return this.method;
@@ -87,6 +171,22 @@ public class JfrValve extends ValveBase {
 
     void setQuery(String query) {
       this.query = query;
+    }
+
+    int getStatus() {
+      return this.status;
+    }
+
+    void setStatus(int status) {
+      this.status = status;
+    }
+
+    long getExchangeId() {
+      return this.exchangeId;
+    }
+
+    void setExchangeId(long exchangeId) {
+      this.exchangeId = exchangeId;
     }
 
   }
