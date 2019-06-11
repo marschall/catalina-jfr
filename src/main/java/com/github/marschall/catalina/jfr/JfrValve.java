@@ -73,6 +73,7 @@ public class JfrValve extends ValveBase {
     event.setMethod(request.getMethod());
     event.setUri(request.getRequestURI());
     event.setQuery(request.getQueryString());
+    event.setDispatcherType(request.getDispatcherType().name());
   }
 
   private static void copyResponeAttributes(Response respone, HttpEvent event) {
@@ -145,6 +146,10 @@ public class JfrValve extends ValveBase {
     @Label("Status")
     @Description("The HTTP response status code")
     private int status;
+    
+    @Label("Dispatcher Type")
+    @Description("The dispatcher type of this request")
+    private String dispatcherType;
 
     @ExchangeId
     private long exchangeId;
@@ -179,6 +184,14 @@ public class JfrValve extends ValveBase {
 
     void setStatus(int status) {
       this.status = status;
+    }
+
+    String getDispatcherType() {
+      return this.dispatcherType;
+    }
+
+    void setDispatcherType(String dispatcherType) {
+      this.dispatcherType = dispatcherType;
     }
 
     long getExchangeId() {
