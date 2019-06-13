@@ -85,6 +85,7 @@ public class JfrValve extends ValveBase {
 
     RelatedHttpEvent event = new RelatedHttpEvent();
     event.setExchangeId(exchangeId);
+    event.setDispatcherType(request.getDispatcherType().name());
     try {
       this.getNext().invoke(request, response);
     } finally {
@@ -112,8 +113,20 @@ public class JfrValve extends ValveBase {
   @StackTrace(false)
   static class RelatedHttpEvent extends Event {
 
+    @Label("Dispatcher Type")
+    @Description("The dispatcher type of this request")
+    private String dispatcherType;
+
     @ExchangeId
     private long exchangeId;
+
+    String getDispatcherType() {
+      return this.dispatcherType;
+    }
+
+    void setDispatcherType(String dispatcherType) {
+      this.dispatcherType = dispatcherType;
+    }
 
     long getExchangeId() {
       return this.exchangeId;
