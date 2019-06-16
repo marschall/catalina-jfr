@@ -86,11 +86,14 @@
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
+          <!--
+          <source>11</source>
           <links>
             <link>https://docs.oracle.com/en/java/javase/11/docs/api/</link>
             <link>https://tomcat.apache.org/tomcat-9.0-doc/api/</link>
             <link>https://tomcat.apache.org/tomcat-9.0-doc/servletapi/</link>
           </links>
+          -->
         </configuration>
         <executions>
           <execution>
