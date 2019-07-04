@@ -159,7 +159,7 @@ public class JfrValve extends ValveBase {
     @Label("Status")
     @Description("The HTTP response status code")
     private int status;
-    
+
     @Label("Dispatcher Type")
     @Description("The dispatcher type of this request")
     private String dispatcherType;
