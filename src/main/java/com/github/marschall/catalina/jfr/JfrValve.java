@@ -23,11 +23,11 @@ import jdk.jfr.Relational;
 import jdk.jfr.StackTrace;
 
 /**
-* An {@link Valve} that generates <a href="https://openjdk.java.net/jeps/328">Flight Recorder</a> events.
-*/
+ * An {@link Valve} that generates <a href="https://openjdk.java.net/jeps/328">Flight Recorder</a> events.
+ */
 public class JfrValve extends ValveBase {
 
-  static final String EXCHANGE_ID_ATTRIBUTE = "com.github.marschall.jfr.catalina.exchangeId";
+  static final String EXCHANGE_ID_ATTRIBUTE = "com.github.marschall.catalina.jfr.exchangeId";
 
   private static final AtomicLong EXCHANGE_ID_GENERATOR = new AtomicLong();
 
@@ -43,13 +43,13 @@ public class JfrValve extends ValveBase {
     Long exchangeId = (Long) request.getAttribute(EXCHANGE_ID_ATTRIBUTE);
     if (exchangeId != null) {
       // dispatched request
-      this.filterRelatedRequest(exchangeId, request, response);
+      this.invokeRelatedRequest(exchangeId, request, response);
     } else {
-      this.filterNewRequest(request, response);
+      this.invokeNewRequest(request, response);
     }
   }
 
-  private void filterNewRequest(Request request, Response response)
+  private void invokeNewRequest(Request request, Response response)
           throws IOException, ServletException {
 
     long newExchangeId = generateExchangeId();
@@ -80,7 +80,7 @@ public class JfrValve extends ValveBase {
     event.setStatus(respone.getStatus());
   }
 
-  private void filterRelatedRequest(long exchangeId, Request request, Response response)
+  private void invokeRelatedRequest(long exchangeId, Request request, Response response)
       throws IOException, ServletException {
 
     RelatedHttpEvent event = new RelatedHttpEvent();
@@ -159,7 +159,7 @@ public class JfrValve extends ValveBase {
     @Label("Status")
     @Description("The HTTP response status code")
     private int status;
-    
+
     @Label("Dispatcher Type")
     @Description("The dispatcher type of this request")
     private String dispatcherType;
