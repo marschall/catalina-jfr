@@ -8,13 +8,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.servlet.ServletException;
-
 import org.apache.catalina.Valve;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.valves.ValveBase;
 
+import jakarta.servlet.ServletException;
 import jdk.jfr.Category;
 import jdk.jfr.Description;
 import jdk.jfr.Event;
