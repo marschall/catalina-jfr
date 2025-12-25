@@ -7,7 +7,7 @@ A Catalina [valve](https://tomcat.apache.org/tomcat-10.1-doc/config/valve.html) 
 
 ![Flight Recording of some HTTP requests](https://github.com/marschall/catalina-jfr/raw/master/src/main/javadoc/Screenshot.png)
 
-This project requires Java 11.
+This project requires Java 11; and Tomcat 10+.
 
 Usage
 -----
@@ -18,6 +18,20 @@ Copy the jar to `${tomcat.home}/lib` and add the following valve to `server.xml`
         <Valve className="com.github.marschall.catalina.jfr.JfrValve" />
 ```
 
+Dependency
+----------
+
+```xml
+<dependency>
+  <groupId>com.github.marschall</groupId>
+  <artifactId>catalina-jfr</artifactId>
+  <version>0.2.0</version>
+</dependency>
+```
+
+Or download from [Maven Cnetral](https://central.sonatype.com/artifact/com.github.marschall/catalina-jfr/overview).
+
+Version 0.1.0 is for Tomcat 9 and Java EE.
 
 Correlating Dispatches
 ----------------------
