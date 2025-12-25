@@ -29,7 +29,7 @@ Dependency
 </dependency>
 ```
 
-Or download from [Maven Cnetral](https://central.sonatype.com/artifact/com.github.marschall/catalina-jfr/overview).
+Or download from [Maven Central](https://central.sonatype.com/artifact/com.github.marschall/catalina-jfr/overview).
 
 Version 0.1.0 is for Tomcat 9 and Java EE.
 
